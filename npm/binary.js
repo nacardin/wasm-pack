@@ -1,47 +1,34 @@
-const { Binary } = require("binary-install");
-const os = require("os");
+const binaryPath = "wasm-pack";
 
-const windows = "x86_64-pc-windows-msvc";
-
-const getPlatform = () => {
-  const type = os.type();
-  const arch = os.arch();
-
-  if (type === "Windows_NT" && arch === "x64") {
-    return windows;
-  }
-  if (type === "Linux" && arch === "x64") {
-    return "x86_64-unknown-linux-musl";
-  }
-  if (type === "Darwin" && arch === "x64") {
-    return "x86_64-apple-darwin";
-  }
-
-  throw new Error(`Unsupported platform: ${type} ${arch}`);
-};
-
-const getBinary = () => {
-  const platform = getPlatform();
-  const version = require("./package.json").version;
-  const author = "rustwasm";
-  const name = "wasm-pack";
-  const url = `https://github.com/${author}/${name}/releases/download/v${version}/${name}-v${version}-${platform}.tar.gz`;
-  return new Binary(platform === windows ? "wasm-pack.exe" : "wasm-pack", url);
+const error = (msg) => {
+  console.error(msg);
+  process.exit(1);
 };
 
 const run = () => {
-  const binary = getBinary();
-  binary.run();
+  if (!existsSync(binaryPath)) {
+    error(`You must install ${binaryPath} before you can run it`);
+  }
+
+  const [, , ...args] = process.argv;
+
+  const options = { cwd: process.cwd(), stdio: "inherit" };
+
+  const result = spawnSync(binaryPath, args, options);
+
+  if (result.error) {
+    error(result.error);
+  }
+
+  process.exit(result.status);
 };
 
 const install = () => {
-  const binary = getBinary();
-  binary.install();
+  console.log(`${this.binaryPath} has been installed!`);
 };
 
 const uninstall = () => {
-  const binary = getBinary();
-  binary.uninstall();
+  console.log(`${this.binaryPath} has been uninstalled`);
 };
 
 module.exports = {
